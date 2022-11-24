@@ -31,7 +31,7 @@ func GetUser(ctx context.Context) (*User, error) {
 
 var jwtPublicKey *rsa.PublicKey
 
-func userFromJwt(tokenString string) (user *User, err error) {
+func UserFromJwt(tokenString string) (user *User, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("recovered error: %v", err)
@@ -85,7 +85,7 @@ func Middleware() func(http.Handler) http.Handler {
 				ctx = context.WithValue(request.Context(), errorCtxKey, errors.New("http header: Authorization's value invalid"))
 			} else {
 				jwtToken := splitToken[1]
-				user, err := userFromJwt(jwtToken)
+				user, err := UserFromJwt(jwtToken)
 				if err != nil {
 					fmt.Printf("userFromJwt: %v\n", err)
 					ctx = context.WithValue(request.Context(), errorCtxKey, err)

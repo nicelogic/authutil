@@ -39,7 +39,7 @@ func GetUser(ctx context.Context) (*User, error) {
 func (auth *Auth)UserFromJwt(tokenString string) (user *User, err error) {
 	defer func() {
 		if e := recover(); e != nil {
-			err = fmt.Errorf("recovered error: %v", err)
+			err = fmt.Errorf("recovered error: %w", err)
 		}
 	}()
 

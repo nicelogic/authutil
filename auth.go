@@ -16,11 +16,11 @@ import (
 
 type Auth struct {
 	privateKey *rsa.PrivateKey
-	publicKey *rsa.PublicKey
+	publicKey  *rsa.PublicKey
 }
 
 type contextKey struct {
-	name string 
+	name string
 }
 
 var userCtxKey = &contextKey{name: "user"}
@@ -36,7 +36,7 @@ func GetUser(ctx context.Context) (*User, error) {
 	return user, err
 }
 
-func (auth *Auth)UserFromJwt(tokenString string) (user *User, err error) {
+func (auth *Auth) UserFromJwt(tokenString string) (user *User, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("recovered error: %w", err)
@@ -68,14 +68,14 @@ func (auth *Auth)UserFromJwt(tokenString string) (user *User, err error) {
 	return
 }
 
-func (auth *Auth)Middleware() func(http.Handler) http.Handler {
+func (auth *Auth) Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			reqToken := request.Header.Get("Authorization")
 			splitToken := strings.Split(reqToken, "Bearer ")
 			var ctx context.Context
 			if len(splitToken) != 2 {
-				ctx = context.WithValue(request.Context(), errorCtxKey, errors.New("http header: Authorization's value invalid"))
+				ctx = context.WithValue(request.Context(), errorCtxKey, errors.New(AuthUtilErrorHttpHeaderAuthorizationInvalid))
 			} else {
 				jwtToken := splitToken[1]
 				user, err := auth.UserFromJwt(jwtToken)
@@ -92,7 +92,7 @@ func (auth *Auth)Middleware() func(http.Handler) http.Handler {
 	}
 }
 
-func (auth *Auth)Init(publicKeyFilePath string, privateKeyFilePath string)(err error){
+func (auth *Auth) Init(publicKeyFilePath string, privateKeyFilePath string) (err error) {
 	// publicKey, err := os.ReadFile("/etc/app-0/secret-jwt/jwt-publickey")
 	publicKey, err := os.ReadFile(publicKeyFilePath)
 	if err != nil {
@@ -106,19 +106,19 @@ func (auth *Auth)Init(publicKeyFilePath string, privateKeyFilePath string)(err e
 	}
 	// privateKey, err := os.ReadFile("/etc/app-0/secret-jwt/jwt-privatekey")
 	privateKey, err := os.ReadFile(privateKeyFilePath)
-	if err != nil{
+	if err != nil {
 		log.Printf("read private key file error: %v\n", err)
 		return
 	}
 	auth.privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateKey)
 	if err != nil {
 		log.Printf("ParseRSAPrivateKeyFromPEM error: %v\n", err)
-		return 
+		return
 	}
-	return 
+	return
 }
 
-func (auth *Auth)SignToken(userId string, expireDuration time.Duration)(jwtToken string, err error) {
+func (auth *Auth) SignToken(userId string, expireDuration time.Duration) (jwtToken string, err error) {
 	user := User{Id: userId}
 	mapClaims := make(jwt.MapClaims)
 	mapClaims["user"] = user
